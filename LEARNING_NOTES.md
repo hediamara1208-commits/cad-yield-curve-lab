@@ -1,5 +1,25 @@
 # Learning Notes
 
+## English → French glossary
+
+| English | Français |
+|---|---|
+| Discount factor | Facteur d'actualisation |
+| Discounting / present value | Actualisation / valeur actuelle |
+| Bond | Obligation |
+| Face value / par / principal | Valeur nominale / nominal / pair |
+| Coupon | Coupon |
+| Maturity | Échéance |
+| Yield curve | Courbe de rendement (usage canadien) / courbe des taux (usage français) |
+| Zero-coupon rate / spot rate | Taux zéro-coupon / taux au comptant |
+| Forward rate | Taux à terme |
+| Yield to maturity | Rendement à l'échéance |
+| Fixed income | Titres à revenu fixe |
+| Basis point (bp) | Point de base (pb) |
+| Accrued interest | Intérêts courus |
+| Clean / dirty price | Prix sans / avec intérêts courus |
+| Bootstrapping | Bootstrap (terme gardé en anglais) |
+
 ## Session 1 (2026-11-12): bootstrapping foundations
 
 ### Key concepts
