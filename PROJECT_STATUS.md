@@ -15,10 +15,14 @@ _Last updated: 2026-11-12_
 - `bond_cash_flows` implemented.
 - Input validation of `bond_cash_flows`: coupon_rate in [0, 0.50], maturity_years integer ≥ 1, face_value > 0. 11 tests pass.
 - Local Git repository initialised, first commit made.
+- `price_from_discount_factors` in `src/yieldcurve/pricing.py`: P = Σ CF(t) × DF(t). The reference curve reprices all 5 synthetic bonds within 1e-4. 15 tests pass.
+
+- `load_bonds` in `src/yieldcurve/data.py`: loads the CSV, checks columns, empty cells, duplicate ids, positive prices, contract terms (via `bond_cash_flows`), returns bonds sorted by maturity. 23 tests pass.
+- `bond_cash_flows` now accepts NumPy integers (`numbers.Integral`).
 
 ## In progress
 
-- Nothing.
+- Branch `feature/bond-pricing` (pricing + data loader), not yet committed.
 
 ## Lessons from debugging
 
@@ -31,9 +35,7 @@ _Last updated: 2026-11-12_
 
 ## Next recommended tasks
 
-1. Implement `bond_price_from_discount_factors` (P = sum CF × DF) and test it against the dataset.
-2. Load and validate `data/synthetic_bonds.csv`.
-3. Phase 2: `bootstrap_discount_factors`.
+1. Phase 2: `bootstrap_discount_factors` in `curve.py`. It must check that maturities are exactly 1, 2, …, N (one bond per year, no gap), since our simple bootstrap needs no interpolation.
 
 ## Architectural decisions
 

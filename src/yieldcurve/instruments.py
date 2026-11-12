@@ -6,6 +6,8 @@ Conventions (see ASSUMPTIONS.md):
 - Valuation date is a coupon date, so accrued interest is zero.
 """
 
+import numbers
+
 MAX_COUPON_RATE = 0.50  # 50% as a decimal
 
 
@@ -24,7 +26,8 @@ def bond_cash_flows(
         raise ValueError(f"face_value={face_value} must be positive.")
 
     # Our model uses annual coupons, so maturities are whole years (see ASSUMPTIONS.md).
-    if not isinstance(maturity_years, int) or maturity_years < 1:
+    # numbers.Integral accepts Python int and NumPy integers (pandas returns numpy.int64).
+    if not isinstance(maturity_years, numbers.Integral) or maturity_years < 1:
         raise ValueError(
             f"maturity_years={maturity_years} must be a whole number of years >= 1."
         )
