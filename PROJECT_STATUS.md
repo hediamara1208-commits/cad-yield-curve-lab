@@ -1,6 +1,6 @@
 # Project Status
 
-_Last updated: 2026-11-12_
+_Last updated: 2026-11-13_
 
 ## Current phase
 
@@ -24,10 +24,12 @@ _Last updated: 2026-11-12_
 - `bootstrap_discount_factors` in `src/yieldcurve/curve.py`: sequential solve of DF(T); rejects maturity gaps, unsorted input and non-positive DFs. Recovers the reference DFs within 1e-5 and reprices all 5 bonds to 1e-10.
 - `zero_rates_from_discount_factors` in `curve.py`: z(T) = DF(T)^(-1/T) - 1 (annual compounding). Recovers the reference zero rates within 0.1 bp.
 - `forward_rate` and `one_year_forward_rates` in `curve.py` (annual compounding, DF(0) = 1). Forwards: 3.00 / 3.40 / 3.80 / 4.00 / 4.05%. Chaining the forwards gives back (1+z5)^5. 38 tests pass.
+- Phase 2 committed on `feature/bootstrap` (08b756a) and merged into `main`.
+- `LEARNING_NOTES.md`: forward rates, no-arbitrage, forwards vs futures.
 
 ## In progress
 
-- Branch `feature/bootstrap`, not yet committed.
+- Nothing.
 
 ## Lessons from debugging
 
@@ -40,8 +42,7 @@ _Last updated: 2026-11-12_
 
 ## Next recommended tasks
 
-1. Commit `feature/bootstrap` and merge into `main`.
-2. Phase 3: minimal Dash app showing the three curves (install dash + plotly).
+1. Phase 3: minimal Dash app showing the three curves (install dash + plotly).
 
 ## Architectural decisions
 

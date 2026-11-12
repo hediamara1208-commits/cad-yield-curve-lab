@@ -60,8 +60,63 @@ Forward f(1,2) = 0.970874/0.938946 − 1 = 3.40%. It is above both zero rates (3
 - Example: 100 received in 5 years costs 83.59 today, because 83.59 × 1.0365^5 = 100. The difference (16.41) is my pay for lending the money for 5 years.
 - The later the money arrives, the less it is worth today. Longer zero-coupon bond → lower price. In our dataset, prices rise with maturity only because the coupons were chosen to rise too.
 
+### Rates up → discount factors down → prices down
+
+- Taux d'actualisation (z) ≠ facteur d'actualisation (DF). When z goes up, DF goes down.
+- Example: z(4) from 3.55% to 3.80% (+25 bp) → DF(4) from 0.8698 to 0.8614.
+- Intuition: DF is the amount to invest today to get 1 $ later. A higher bank rate means less money is needed today, so a promise of 1 $ later is worth less.
+- 1 basis point = 0.01% = 0.0001. Always say "points de base", never just "points".
+
+### Forward rates (taux à terme)
+
+- f(2,3) = rate fixed **today** for a loan that starts in year 2 and ends in year 3.
+- **Zero rate = average of forwards.** z(3) ≈ (3.00 + 3.40 + 3.80) / 3 = 3.40%. Like a grade average: to make it rise, the new grade must be above the average. Rising curve → forwards above zero rates; flat → equal; inverted → below.
+- **Replication with zero-coupon bonds** (single payment, no coupons). Today: borrow 90.46 for 2 years (repay 90.46/DF(2) = 96.34 in year 2) and invest it in a 3-year zero-coupon paying 100. Net today: 0. Year 2: pay 96.34. Year 3: receive 100. Rate locked today: 100/96.34 − 1 = 3.80% = f(2,3).
+- **No arbitrage:** this construction earns nothing for free. That is what forces the forward to be 3.80%.
+- **A forward rate is not a prediction** of the future rate. It is the rate that can be locked today. Investors often demand a term premium, so forwards tend to sit a bit above expectations.
+
+### Arbitrage, speculation, hedging
+
+| Strategy | Risk | Gain |
+|---|---|---|
+| Arbitrage (market quotes a forward ≠ implied rate) | none | small, rare, closed in seconds |
+| Speculation (bet that the future rate ≠ forward) | yes | depends on my forecast |
+| Hedging (lock a rate to remove uncertainty) | reduced | not the goal |
+
+- "Fair price" means **nobody can win for sure in advance**, not that nobody wins. Like a fair coin toss.
+- A forward contract is a **zero-sum game**: the lender's gain is the borrower's loss.
+
+### Which side to take (mistake corrected)
+
+- **My mistake:** I said "if rates will rise, be the lender".
+- **Correction:** lock today the rate that becomes attractive tomorrow.
+  - Rates will **rise** → borrowing becomes expensive → lock a **borrowing** rate now.
+  - Rates will **fall** → lending pays less → lock a **lending** rate now.
+- Consistency check: lending = owning a bond, and bond prices rise when rates fall.
+
+### Who sets forward rates (mistake corrected)
+
+- **My confusion:** contracts registered with the central bank, which sets forward rates.
+- **Correction:** forward rates come from **market prices** (bond prices, via our formula). The **Bank of Canada** (Banque du Canada, the central bank) sets only the overnight **policy rate** (taux directeur); it strongly drives short rates. The **Banque Nationale du Canada** is a commercial bank, not the central bank.
+- Forward rates change every day; contracts are revalued daily (**mark-to-market**).
+
+### Forwards vs futures
+
+| | Forward (de gré à gré, OTC) | Future (standardised, exchange) |
+|---|---|---|
+| Where | negotiated between two parties | on an exchange (e.g. Bourse de Montréal, CORRA futures) |
+| Terms | custom | standardised |
+| Settlement | usually at maturity | **daily** (margin calls) |
+| Counterparty risk | yes | almost none (clearing house) |
+
+- OTC derivatives must be reported to regulators since 2008 (in Quebec: the AMF).
+- Further reading: Hull, *Options, Futures, and Other Derivatives*, first chapters (futures and forward markets).
+
 ### Questions to review
 
 1. Why can't DF(3) be computed before DF(2)?
 2. If bond C's price drops (A and B unchanged), what happens to DF(3) and z(3)?
 3. Why does a rising zero curve imply forwards above the zero curve?
+4. Show with zero-coupon bonds how to lock f(2,3) today with no money out.
+5. You expect rates to fall: lender or borrower in a forward? Why?
+6. Name two differences between a forward and a future.
