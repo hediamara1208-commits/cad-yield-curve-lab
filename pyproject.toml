@@ -1,0 +1,9 @@
+[project]
+name = "cad-yield-curve-lab"
+version = "0.0.1"
+description = "Educational CAD yield curve bootstrapping engine and Dash dashboard"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
