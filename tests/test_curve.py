@@ -12,6 +12,7 @@ import pytest
 
 from yieldcurve.curve import (
     bootstrap_discount_factors,
+    build_curve_table,
     forward_rate,
     one_year_forward_rates,
     zero_rates_from_discount_factors,
@@ -153,6 +154,19 @@ def test_chaining_forwards_gives_back_the_zero_rate():
 def test_forward_rejects_end_before_start():
     with pytest.raises(ValueError):
         forward_rate(2, 0.94, 1, 0.97)
+
+
+def test_curve_table_matches_individual_functions():
+    bonds = load_bonds(DATA_DIR / "synthetic_bonds.csv")
+    table = build_curve_table(bonds)
+
+    assert table["maturity_years"].tolist() == [1, 2, 3, 4, 5]
+    assert table["zero_rate"].tolist() == pytest.approx(
+        [0.0300, 0.0320, 0.0340, 0.0355, 0.0365], abs=RATE_TOLERANCE
+    )
+    assert table["forward_rate"].tolist() == pytest.approx(
+        [0.0300, 0.0340, 0.0380, 0.0400, 0.0405], abs=1e-4
+    )
 
 
 def test_inconsistent_price_is_rejected():

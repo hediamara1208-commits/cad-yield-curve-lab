@@ -107,6 +107,30 @@ def one_year_forward_rates(
     return forwards
 
 
+def build_curve_table(bonds: pd.DataFrame) -> pd.DataFrame:
+    """Run the full curve construction and return one row per maturity.
+
+    Columns: maturity_years, discount_factor, zero_rate, forward_start,
+    forward_rate (rates as decimals). forward_rate is f(forward_start, maturity).
+    This is the single entry point the dashboard uses: no finance in the UI.
+    """
+    discount_factors = bootstrap_discount_factors(bonds)
+    zero_rates = zero_rates_from_discount_factors(discount_factors)
+    forwards = one_year_forward_rates(discount_factors)
+
+    rows = [
+        {
+            "maturity_years": maturity,
+            "discount_factor": discount_factors[maturity],
+            "zero_rate": zero_rates[maturity],
+            "forward_start": maturity - 1,
+            "forward_rate": forwards[(maturity - 1, maturity)],
+        }
+        for maturity in sorted(discount_factors)
+    ]
+    return pd.DataFrame(rows)
+
+
 def check_maturities_are_consecutive_years(bonds: pd.DataFrame) -> None:
     """Require maturities exactly 1, 2, ..., N in this order.
 

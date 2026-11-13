@@ -27,9 +27,12 @@ _Last updated: 2026-11-13_
 - Phase 2 committed on `feature/bootstrap` (08b756a) and merged into `main`.
 - `LEARNING_NOTES.md`: forward rates, no-arbitrage, forwards vs futures.
 
+- Phase 3 step 1: static Dash page `app/app.py` (bond table, DF chart, zero + forward chart, curve values table). Engine entry point `build_curve_table` in `curve.py`. Package installed in editable mode (`pip install -e .`). 39 tests pass.
+
 ## In progress
 
-- Nothing.
+- Branch `feature/dash-app`, not yet committed.
+- Phase 3 step 2: `cash_flow_breakdown` in `pricing.py` (tested, 41 tests pass). Bond selector + first callback in `app.py`: shows the selected bond's cash flows, DFs, present values and total. Checked in the browser: bond B total = 99.6241 = market price.
 
 ## Lessons from debugging
 
@@ -42,7 +45,8 @@ _Last updated: 2026-11-13_
 
 ## Next recommended tasks
 
-1. Phase 3: minimal Dash app showing the three curves (install dash + plotly).
+1. Phase 3 step 2: first callback, e.g. a control that changes what the charts show.
+2. Dark mode for the dashboard (light only for now).
 
 ## Architectural decisions
 

@@ -2,7 +2,7 @@
 
 An educational Python project that bootstraps an interest rate yield curve from bond prices, derives discount factors, zero-coupon rates and forward rates, and (later) visualises them in a Dash dashboard, with a focus on Canadian fixed-income markets.
 
-> **Status:** early development (Phase 1). The current data is **synthetic**: it is not market data.
+> **Status:** early development (Phase 3). The current data is **synthetic**: it is not market data.
 
 ## Setup
 
@@ -10,8 +10,25 @@ An educational Python project that bootstraps an interest rate yield curve from 
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+pip install -e .
 pytest
 ```
+
+`pip install -e .` installs the `yieldcurve` package in editable mode, so the Dash app can import it.
+
+## Run the dashboard
+
+```bash
+python app/app.py
+```
+
+Then open http://localhost:8050.
+
+## Structure
+
+- `src/yieldcurve/`: financial engine (data, instruments, pricing, curve). No UI code.
+- `app/`: Dash dashboard. It calls `build_curve_table` and only draws the results.
+- `tests/`: pytest tests for the engine.
 
 ## Documentation
 

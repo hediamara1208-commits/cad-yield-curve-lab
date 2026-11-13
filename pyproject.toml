@@ -7,3 +7,5 @@ requires-python = ">=3.11"
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+# Dash ships a pytest plugin for browser tests that we do not use.
+addopts = "-p no:dash"

@@ -32,3 +32,25 @@ def price_from_discount_factors(
         price += amount * discount_factors[time]
 
     return price
+
+
+def cash_flow_breakdown(
+    cash_flows: list[tuple[int, float]], discount_factors: dict[int, float]
+) -> list[dict]:
+    """Detail of the price: one row per cash flow, with its present value.
+
+    Each row: time, cash_flow, discount_factor, present_value = cash_flow * DF.
+    The sum of present_value equals price_from_discount_factors(...).
+    """
+    rows = []
+    for time, amount in cash_flows:
+        discount_factor = discount_factors[time]
+        rows.append(
+            {
+                "time": time,
+                "cash_flow": amount,
+                "discount_factor": discount_factor,
+                "present_value": amount * discount_factor,
+            }
+        )
+    return rows
