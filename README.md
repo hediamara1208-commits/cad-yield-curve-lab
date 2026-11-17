@@ -33,25 +33,35 @@ Conventions (see [ASSUMPTIONS.md](ASSUMPTIONS.md)): CAD, face value 100, annual 
 
 **Pricing.** A bond is a list of cash flows; its price is their present value:
 
-$$P = \sum_t CF(t)\,DF(t)$$
+```math
+P = \sum_t CF(t)\, DF(t)
+```
 
 **Bootstrapping.** Bonds are processed from shortest to longest maturity. For a bond maturing at $T$, every discount factor before $T$ is already known, so only $DF(T)$ is unknown:
 
-$$DF(T) = \frac{P - \sum_{t<T} CF(t)\,DF(t)}{CF(T)}$$
+```math
+DF(T) = \frac{P - \sum_{t < T} CF(t)\, DF(t)}{CF(T)}
+```
 
 **Zero and forward rates** (annual compounding):
 
-$$z(T) = DF(T)^{-1/T} - 1 \qquad f(T_1,T_2) = \left(\frac{DF(T_1)}{DF(T_2)}\right)^{1/(T_2-T_1)} - 1$$
+```math
+z(T) = DF(T)^{-1/T} - 1 \qquad f(T_1,T_2) = \left(\frac{DF(T_1)}{DF(T_2)}\right)^{1/(T_2-T_1)} - 1
+```
 
 **Scenarios.** A shock of $s$ basis points is applied to **every zero rate** (not to each bond's yield), so every bond is repriced with one consistent set of discount factors:
 
-$$z'(T) = z(T) + s \times 0.0001$$
+```math
+z'(T) = z(T) + s \times 0.0001
+```
 
 **DV01** by finite difference: $\text{DV01} = P(\text{base}) - P(\text{curve} + 1\text{ bp})$. It is linear; large shocks are always computed by full repricing, and the difference shows the convexity.
 
 **Hedge.** Face amount of the hedge bond to sell so that the portfolio DV01 is zero:
 
-$$\text{face} = \frac{\text{DV01}_\text{portfolio}}{\text{DV01 of the hedge per 100}} \times 100$$
+```math
+\text{face} = \frac{\text{DV01}_{\text{portfolio}}}{\text{DV01 of the hedge per 100}} \times 100
+```
 
 ---
 
