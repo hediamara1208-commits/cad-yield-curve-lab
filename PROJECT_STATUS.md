@@ -29,9 +29,16 @@ _Last updated: 2026-11-13_
 
 - Phase 3 step 1: static Dash page `app/app.py` (bond table, DF chart, zero + forward chart, curve values table). Engine entry point `build_curve_table` in `curve.py`. Package installed in editable mode (`pip install -e .`). 39 tests pass.
 
+- Phase 3 committed (4812a63) and merged into `main`.
+- Phase 4 step 1: `parallel_shift` in new `src/yieldcurve/risk.py` (DF → z → z + shift → DF), and `discount_factors_from_zero_rates` in `curve.py`. 50 tests pass.
+
 ## In progress
 
-- Branch `feature/dash-app`, not yet committed.
+- Phase 4 step 2: `price_after_shift`, `dv01` (P(base) − P(+1 bp)) and `scenario_table` in `risk.py`. DV01 per 100 face: A 0.0094, B 0.0190, C 0.0281, D 0.0369, E 0.0454. Convexity checked: loss(+100 bp) < 100 × DV01 < gain(−100 bp). 57 tests pass.
+- Branch `feature/scenarios`, not yet committed. Next: show the scenario table in the dashboard (shift selector).
+
+## Previous (Phase 3)
+
 - Phase 3 step 2: `cash_flow_breakdown` in `pricing.py` (tested, 41 tests pass). Bond selector + first callback in `app.py`: shows the selected bond's cash flows, DFs, present values and total. Checked in the browser: bond B total = 99.6241 = market price.
 
 ## Lessons from debugging

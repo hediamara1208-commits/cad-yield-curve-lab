@@ -73,6 +73,16 @@ def zero_rates_from_discount_factors(
     return zero_rates
 
 
+def discount_factors_from_zero_rates(zero_rates: dict[int, float]) -> dict[int, float]:
+    """Inverse of zero_rates_from_discount_factors: DF(T) = 1 / (1 + z(T))^T."""
+    discount_factors = {}
+    for maturity, zero_rate in zero_rates.items():
+        if maturity <= 0 or zero_rate <= -1:
+            raise ValueError(f"Need maturity > 0 and z > -100%, got T={maturity}, z={zero_rate}.")
+        discount_factors[maturity] = 1 / (1 + zero_rate) ** maturity
+    return discount_factors
+
+
 def forward_rate(
     start_time: float, start_df: float, end_time: float, end_df: float
 ) -> float:
