@@ -112,6 +112,39 @@ Forward f(1,2) = 0.970874/0.938946 − 1 = 3.40%. It is above both zero rates (3
 - OTC derivatives must be reported to regulators since 2008 (in Quebec: the AMF).
 - Further reading: Hull, *Options, Futures, and Other Derivatives*, first chapters (futures and forward markets).
 
+### DV01 (dé-vé-zéro-un)
+
+- DV01 = price loss when the whole zero curve rises by 1 bp (parallel shift). Also called PV01.
+- Bond C: about 0.028 per 100 face → 281 $ per 1,000,000 face.
+- A zero-coupon bond IS affected: its price is 100 × DF(T), and DF(T) falls when rates rise.
+- Sensitivity comes from **how far** the cash flows are: relative change of DF(T) ≈ T / (1+z) × Δz. The exponent T is the mathematical form of "far in time".
+- Bond E: the final flow (104) is about 85% of the price, but about 92% of the DV01, because each flow's sensitivity is weighted by its date T.
+
+### Repricing is not a proof (mistake corrected)
+
+- **My answer:** the bootstrapped curve gives back every market price, so the bootstrap is correct.
+- **Correction:** repricing is exact **by construction**: each DF was solved precisely so that its bond reprices. It is a circular check. Example: if `bond_cash_flows` forgot to repay the face value, the bootstrap AND the repricing would both use the same wrong flows, the prices would still match perfectly, and the DFs would be absurd.
+- What actually validates the algorithm: the **independent** checks. Recovery of the known reference curve, the hand calculation, the flat-curve test. More bonds would not change this.
+- With real market data there is no reference curve, so repricing is all we have. That is why the method is first validated on synthetic data.
+
+### Coupon rate vs yield (mistakes corrected)
+
+- **The coupon is always computed on the face value (100), never on the price paid.** Bond B pays 3 $ a year, not 3% of 99.62.
+- Yield ≈ (coupon / price) + capital gain or loss at maturity, per year:
+  - C (price 100.31): 3.50/100.31 = 3.49%, minus 0.31 $ lost over 3 years ≈ 0.10%/yr → **3.39% < 3.50%**.
+  - B (price 99.62): 3/99.62 = 3.01%, plus 0.38 $ gained over 2 years ≈ 0.19%/yr → **3.20% > 3.00%**.
+- **A zero-coupon bond has no coupon (0%).** Its yield equals z(T) because it has a single cash flow.
+- Two different comparisons, two explanations:
+  - C's yield < C's coupon → C costs more than 100 and the premium is lost at maturity.
+  - C's yield < 3-year zero's yield → C is a bundle of three zero-coupons (3.5 $ at 1y yielding 3.00%, 3.5 $ at 2y yielding 3.20%, 103.5 $ at 3y yielding 3.40%); the two small early pieces pull the average down.
+
+### Rates are per year, and they compound (mistakes corrected)
+
+- **My confusion:** a 3-year zero at 3.40% pays 3.40% only once, at the end; and a 2-year zero at 5% pays 110 $.
+- **Correction:** the rate is **per year**. A zero pays all the interest at the end, **with interest on interest**: 100 × 1.05² = **110.25 $**, not 110 $. Three years: 100 × 1.05³ = 115.76 $.
+- A coupon bond pays fewer dollars in total, but earlier. Brought back to today, both are worth exactly the same. **Never compare dollars received at different dates without discounting them first.**
+- Three notions not to confuse: total return (10.55% over 3 years for C), annualised realised return (3.40%), yield to maturity (3.39%).
+
 ### Questions to review
 
 1. Why can't DF(3) be computed before DF(2)?
