@@ -137,4 +137,3 @@ Possible extensions: semi-annual coupons and day counts, interpolation, key-rate
 - [ASSUMPTIONS.md](ASSUMPTIONS.md): every modelling convention and limitation
 - [LEARNING_NOTES.md](LEARNING_NOTES.md): concepts, worked examples and corrected mistakes
 - [PROJECT_STATUS.md](PROJECT_STATUS.md): development log
-
