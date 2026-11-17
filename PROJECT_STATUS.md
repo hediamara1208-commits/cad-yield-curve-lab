@@ -39,7 +39,10 @@ _Last updated: 2026-11-13_
 - Phase 4 step 3: dashboard section 6 "Rate scenarios" with a shift selector (±25/50/100 bp), a base vs shifted zero curve chart, and a table: base price, new price, change, DV01, DV01 estimate, convexity gap. Checked in the browser (+100 bp: bond B 99.6241 → 97.7487). Not committed yet.
 - Scenario dashboard committed (f2ba969).
 - Phase 4 step 4: `portfolio_risk` (positions in $: market value, DV01, P&L under a shift) and `hedge_nominal` in `risk.py`, tested on the worked example (1 M$ A + 1 M$ E → DV01 548 $; hedge ≈ 1.95 M$ of C or 1.21 M$ of E; hedged DV01 = 0). Dashboard section 7: face amount per bond, hedge bond selector, positions table with totals and hedge size. 61 tests pass. Not committed yet. Fixed: face amount inputs used step=100000, so the browser rejected 1,950,000; now step="any". Checked in the browser: hedged portfolio P&L = +304 $ at +100 bp, +344 $ at −100 bp (convexity).
-- Next: Phase 5 (Bank of Canada data).
+- Phase 4 committed (049040c) and merged into `main`.
+- Phase 5 step 1 (branch `feature/boc-data`): `src/yieldcurve/boc.py` (parse Valet JSON, percent → decimal, keep 2/3/5/7/10y, skip missing values, save/load CSV with checks), `scripts/download_boc_yields.py`, `data/boc_benchmark_yields.csv` (1,712 dates, 2020-01-02 to 2026-11-13). Tests use a saved sample, no network. 67 tests pass. Not committed yet.
+- First look at the data (our computation): 2s10s from +134 bp (2021-03-18) to −132 bp (2023-06-30); inverted on 592 of 1,712 days; +48 bp on 2026-11-13.
+- Next: engine functions for slope and date comparison, then dashboard section "Observed market".
 
 ## Previous (Phase 3)
 

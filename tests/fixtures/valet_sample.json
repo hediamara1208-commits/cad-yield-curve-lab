@@ -1,0 +1,24 @@
+{
+  "observations": [
+    {
+      "d": "2026-11-12",
+      "BD.CDN.2YR.DQ.YLD": {"v": "3.33"},
+      "BD.CDN.3YR.DQ.YLD": {"v": "3.41"},
+      "BD.CDN.5YR.DQ.YLD": {"v": "3.53"},
+      "BD.CDN.7YR.DQ.YLD": {"v": "3.61"},
+      "BD.CDN.10YR.DQ.YLD": {"v": "3.78"},
+      "BD.CDN.LONG.DQ.YLD": {"v": "4.09"},
+      "BD.CDN.RRB.DQ.YLD": {"v": "1.94"}
+    },
+    {
+      "d": "2026-11-13",
+      "BD.CDN.2YR.DQ.YLD": {"v": "3.37"},
+      "BD.CDN.3YR.DQ.YLD": {"v": "3.45"},
+      "BD.CDN.5YR.DQ.YLD": {"v": "3.59"},
+      "BD.CDN.7YR.DQ.YLD": {"v": ""},
+      "BD.CDN.10YR.DQ.YLD": {"v": "3.85"},
+      "BD.CDN.LONG.DQ.YLD": {"v": "4.16"},
+      "BD.CDN.RRB.DQ.YLD": {"v": "2.01"}
+    }
+  ]
+}

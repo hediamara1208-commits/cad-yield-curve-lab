@@ -42,6 +42,15 @@ This file lists every financial modelling assumption used by the engine. Update 
 - Method: choose a reference zero curve (`data/reference_zero_curve.csv`), compute discount factors, price each bond with `P = sum CF(t) * DF(t)`, round prices to 4 decimals (`data/synthetic_bonds.csv`).
 - Purpose: the bootstrap must recover the reference curve. The only expected error comes from rounding the prices (about 1e-6 on discount factors).
 
+## Dataset B: Bank of Canada benchmark yields (observed data)
+
+- Source: Bank of Canada Valet API, group `bond_yields_benchmark`, business-daily. Terms of use: https://www.bankofcanada.ca/terms/
+- File: `data/boc_benchmark_yields.csv`, downloaded with `scripts/download_boc_yields.py` (currently 2020-01-02 to 2026-11-13). **Not live**: refreshed only when the script is re-run.
+- Kept: nominal 2, 3, 5, 7 and 10-year benchmarks. Excluded: the long-term benchmark (maturity not a fixed number of years) and the Real Return Bond (inflation-linked, real yield).
+- Valet reports percent; stored as **decimals** (3.37 → 0.0337). Missing values are skipped, never filled.
+- These are **yields to maturity of specific coupon bonds**, not zero-coupon rates. They are not used as discount factors and are not bootstrapped (coupons, exact maturities and prices are not provided).
+- Uses: display the observed yield curve on a date, compare dates, track the slope (10-year minus 2-year, in bp).
+
 ## Known simplifications vs. market practice
 
 - Government of Canada bonds pay **semi-annual** coupons and use an Actual/365 day-count convention.
