@@ -45,6 +45,33 @@ h2 { font-size: 18px; margin: 32px 0 8px; }
 
 .data-table th { color: #52514e; font-weight: 600; }
 
+.nominal-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.nominal-inputs label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #52514e;
+}
+
+/* Dash 4 wraps each input in a .dash-input-container div: size the wrapper. */
+.nominal-inputs .dash-input-container {
+  width: 140px;
+}
+
+.nominal-inputs input {
+  width: 100%;
+  padding: 4px 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hedge-label { color: #52514e; }
+
 .shift-selector label {
   margin-right: 16px;
   font-variant-numeric: tabular-nums;

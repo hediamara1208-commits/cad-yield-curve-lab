@@ -145,6 +145,14 @@ Forward f(1,2) = 0.970874/0.938946 − 1 = 3.40%. It is above both zero rates (3
 - A coupon bond pays fewer dollars in total, but earlier. Brought back to today, both are worth exactly the same. **Never compare dollars received at different dates without discounting them first.**
 - Three notions not to confuse: total return (10.55% over 3 years for C), annualised realised return (3.40%), yield to maturity (3.39%).
 
+### Portfolio DV01 and hedging
+
+- DV01 per 100 → dollars: multiply by face amount / 100. 1 M$ of A + 1 M$ of E → 94 $ + 454 $ = **548 $**. DV01s add up.
+- Hedge: sell DV01 portfolio / DV01 hedge per 100 × 100 face. With C: 548 / 0.0281 × 100 ≈ **1.95 M$**. With E: ≈ **1.21 M$** (a more sensitive bond → less face needed).
+- **My mistake:** I first said "E has a bigger DV01, so sell more of E". Wrong: each dollar of E covers more risk, so less is needed.
+- Under-hedging (selling too little) leaves a net long position: it loses if rates rise and gains if they fall. Over-hedging is the opposite. It is not "always a loss".
+- **Hedged portfolio (A + E − 1.95 M$ C) is not exactly flat for big moves:** P&L = +304 $ at +100 bp and +344 $ at −100 bp. Positive both ways: A + E (a "barbell": short + long bond) is more convex than C (a "bullet": one middle bond). The DV01 hedge removes first-order risk only; convexity differences remain.
+
 ### Questions to review
 
 1. Why can't DF(3) be computed before DF(2)?

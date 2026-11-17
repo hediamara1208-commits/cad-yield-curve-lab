@@ -5,7 +5,14 @@ import pytest
 from yieldcurve.curve import discount_factors_from_zero_rates, zero_rates_from_discount_factors
 from yieldcurve.instruments import bond_cash_flows
 from yieldcurve.pricing import price_from_discount_factors
-from yieldcurve.risk import dv01, parallel_shift, price_after_shift, scenario_table
+from yieldcurve.risk import (
+    dv01,
+    hedge_nominal,
+    parallel_shift,
+    portfolio_risk,
+    price_after_shift,
+    scenario_table,
+)
 
 REFERENCE_ZERO_RATES = {1: 0.0300, 2: 0.0320, 3: 0.0340, 4: 0.0355, 5: 0.0365}
 
@@ -100,6 +107,60 @@ def test_scenario_table_columns_and_signs():
         "bond_id", "maturity_years", "base_price", "dv01", "change_-25bp", "change_+25bp",
     ]
     assert table.loc[0, "change_+25bp"] < 0 < table.loc[0, "change_-25bp"]
+
+
+def synthetic_bonds():
+    import pandas as pd
+
+    return pd.DataFrame(
+        [
+            ("A", 1, 0.0, 100, 97.0874),
+            ("B", 2, 0.03, 100, 99.6241),
+            ("C", 3, 0.035, 100, 100.3065),
+            ("D", 4, 0.0375, 100, 100.7916),
+            ("E", 5, 0.04, 100, 101.67),
+        ],
+        columns=["bond_id", "maturity_years", "coupon_rate", "face_value", "price"],
+    )
+
+
+def test_portfolio_dv01_worked_example():
+    # 1 M$ of A and 1 M$ of E: DV01 about 94 $ + 454 $ = 548 $ (LEARNING_NOTES).
+    positions = portfolio_risk(
+        synthetic_bonds(), reference_discount_factors(), {"A": 1_000_000, "E": 1_000_000}, 25
+    )
+    assert positions["bond_id"].tolist() == ["A", "E"]
+    assert positions["dv01"].sum() == pytest.approx(548, abs=2)
+
+
+def test_portfolio_values_scale_with_nominal():
+    discount_factors = reference_discount_factors()
+    small = portfolio_risk(synthetic_bonds(), discount_factors, {"C": 100}, 25)
+    large = portfolio_risk(synthetic_bonds(), discount_factors, {"C": 1_000_000}, 25)
+    assert large.loc[0, "dv01"] == pytest.approx(small.loc[0, "dv01"] * 10_000)
+    assert small.loc[0, "market_value"] == pytest.approx(
+        price_from_discount_factors(BOND_C, discount_factors)
+    )
+
+
+def test_portfolio_rejects_unknown_bond():
+    with pytest.raises(ValueError, match="Unknown"):
+        portfolio_risk(synthetic_bonds(), reference_discount_factors(), {"Z": 100}, 25)
+
+
+def test_hedge_with_c_neutralises_dv01():
+    discount_factors = reference_discount_factors()
+    bonds = synthetic_bonds()
+    portfolio = portfolio_risk(bonds, discount_factors, {"A": 1_000_000, "E": 1_000_000}, 1)
+    hedge_dv01_per_100 = dv01(BOND_C, discount_factors)
+
+    nominal_to_sell = hedge_nominal(portfolio["dv01"].sum(), hedge_dv01_per_100)
+    assert nominal_to_sell == pytest.approx(1_950_000, rel=0.01)
+
+    hedged = portfolio_risk(
+        bonds, discount_factors, {"A": 1_000_000, "E": 1_000_000, "C": -nominal_to_sell}, 1
+    )
+    assert hedged["dv01"].sum() == pytest.approx(0, abs=1e-6)
 
 
 def test_rates_up_means_discount_factors_down():

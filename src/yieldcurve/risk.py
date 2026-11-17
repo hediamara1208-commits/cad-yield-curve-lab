@@ -52,6 +52,55 @@ def dv01(cash_flows: list[tuple[int, float]], discount_factors: dict[int, float]
     return base_price - price_after_shift(cash_flows, discount_factors, 1)
 
 
+def portfolio_risk(
+    bonds: pd.DataFrame,
+    discount_factors: dict[int, float],
+    nominals: dict[str, float],
+    shift_bp: float,
+) -> pd.DataFrame:
+    """Risk of a portfolio of bond positions, in dollars.
+
+    nominals maps bond_id -> face amount held in $ (e.g. {"E": 1_000_000}).
+    Per-100 figures are scaled by nominal / 100. Columns: bond_id, nominal,
+    market_value, dv01, pnl (value change under shift_bp, by full repricing).
+    DV01s and P&Ls are additive: the portfolio total is the sum of the rows.
+    """
+    unknown = set(nominals) - set(bonds["bond_id"])
+    if unknown:
+        raise ValueError(f"Unknown bond_id in nominals: {sorted(unknown)}")
+
+    rows = []
+    for bond in bonds.itertuples():
+        nominal = nominals.get(bond.bond_id, 0.0)
+        if nominal == 0:
+            continue
+        cash_flows = bond_cash_flows(bond.face_value, bond.coupon_rate, bond.maturity_years)
+        price = price_from_discount_factors(cash_flows, discount_factors)
+        scale = nominal / bond.face_value  # number of 100 $ blocks held
+        rows.append(
+            {
+                "bond_id": bond.bond_id,
+                "nominal": nominal,
+                "market_value": price * scale,
+                "dv01": dv01(cash_flows, discount_factors) * scale,
+                "pnl": (price_after_shift(cash_flows, discount_factors, shift_bp) - price) * scale,
+            }
+        )
+    return pd.DataFrame(rows, columns=["bond_id", "nominal", "market_value", "dv01", "pnl"])
+
+
+def hedge_nominal(portfolio_dv01: float, hedge_dv01_per_100: float) -> float:
+    """Nominal of the hedge bond to SELL so that the total DV01 becomes zero.
+
+    nominal = portfolio DV01 / DV01 of the hedge per 100 face x 100.
+    Example: 548 $ / 0.0281 x 100 = about 1.95 M$ of bond C.
+    Valid for small parallel shifts only (see ASSUMPTIONS.md).
+    """
+    if hedge_dv01_per_100 <= 0:
+        raise ValueError("The hedge bond must have a positive DV01.")
+    return portfolio_dv01 / hedge_dv01_per_100 * 100
+
+
 def scenario_table(
     bonds: pd.DataFrame,
     discount_factors: dict[int, float],

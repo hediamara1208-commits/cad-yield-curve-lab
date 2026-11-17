@@ -37,7 +37,9 @@ _Last updated: 2026-11-13_
 - Phase 4 step 2: `price_after_shift`, `dv01` (P(base) − P(+1 bp)) and `scenario_table` in `risk.py`. DV01 per 100 face: A 0.0094, B 0.0190, C 0.0281, D 0.0369, E 0.0454. Convexity checked: loss(+100 bp) < 100 × DV01 < gain(−100 bp). 57 tests pass.
 - Phase 4 engine committed (80ec7c9).
 - Phase 4 step 3: dashboard section 6 "Rate scenarios" with a shift selector (±25/50/100 bp), a base vs shifted zero curve chart, and a table: base price, new price, change, DV01, DV01 estimate, convexity gap. Checked in the browser (+100 bp: bond B 99.6241 → 97.7487). Not committed yet.
-- Next: portfolio view (nominal per bond, total DV01, hedge ratio), then Phase 5 (Bank of Canada data).
+- Scenario dashboard committed (f2ba969).
+- Phase 4 step 4: `portfolio_risk` (positions in $: market value, DV01, P&L under a shift) and `hedge_nominal` in `risk.py`, tested on the worked example (1 M$ A + 1 M$ E → DV01 548 $; hedge ≈ 1.95 M$ of C or 1.21 M$ of E; hedged DV01 = 0). Dashboard section 7: face amount per bond, hedge bond selector, positions table with totals and hedge size. 61 tests pass. Not committed yet. Fixed: face amount inputs used step=100000, so the browser rejected 1,950,000; now step="any". Checked in the browser: hedged portfolio P&L = +304 $ at +100 bp, +344 $ at −100 bp (convexity).
+- Next: Phase 5 (Bank of Canada data).
 
 ## Previous (Phase 3)
 

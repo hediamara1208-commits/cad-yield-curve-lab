@@ -17,7 +17,14 @@ from yieldcurve.curve import build_curve_table, zero_rates_from_discount_factors
 from yieldcurve.data import load_bonds
 from yieldcurve.instruments import bond_cash_flows
 from yieldcurve.pricing import cash_flow_breakdown
-from yieldcurve.risk import STANDARD_SHIFTS_BP, parallel_shift, scenario_table
+from yieldcurve.risk import (
+    STANDARD_SHIFTS_BP,
+    dv01,
+    hedge_nominal,
+    parallel_shift,
+    portfolio_risk,
+    scenario_table,
+)
 
 DATA_FILE = Path(__file__).parent.parent / "data" / "synthetic_bonds.csv"
 
@@ -35,6 +42,9 @@ AXIS = "#c3c2b7"
 bonds = load_bonds(DATA_FILE)
 curve = build_curve_table(bonds)
 discount_factors = dict(zip(curve["maturity_years"], curve["discount_factor"]))
+
+# Example portfolio from the learning notes: 1 M$ of A and 1 M$ of E.
+DEFAULT_NOMINALS = {"A": 1_000_000, "E": 1_000_000}
 
 
 # ---------------------------------------------------------------- figures
@@ -195,6 +205,33 @@ app.layout = html.Main(
         ),
         dcc.Graph(id="shift-chart", config={"displayModeBar": False}),
         html.Div(id="scenario-output"),
+        html.H2("7. Portfolio risk and DV01 hedge"),
+        html.P(
+            "Enter the face amount held in each bond ($). DV01 and P&L are in dollars, "
+            "under the shift selected in section 6. A negative amount is a short position.",
+            className="caption",
+        ),
+        html.Div(
+            className="nominal-inputs",
+            children=[
+                html.Label([
+                    f"Bond {bond_id}",
+                    dcc.Input(
+                        # step="any": accept any amount (a numeric step makes the browser
+                        # reject values that are not multiples of it, e.g. 1,950,000).
+                        id=f"nominal-{bond_id}", type="number", step="any",
+                        value=DEFAULT_NOMINALS.get(bond_id, 0), debounce=True,
+                    ),
+                ])
+                for bond_id in bonds["bond_id"]
+            ],
+        ),
+        html.Label(["Hedge with bond ", dcc.Dropdown(
+            id="hedge-selector",
+            options=[{"label": f"Bond {b}", "value": b} for b in bonds["bond_id"]],
+            value="C", clearable=False, style={"width": "160px", "display": "inline-block"},
+        )], className="hedge-label"),
+        html.Div(id="portfolio-output", style={"marginTop": "12px"}),
     ],
 )
 
@@ -284,6 +321,52 @@ def show_scenario(shift_bp: int):
         className="caption", style={"marginTop": "8px"},
     )
     return figure, html.Div([make_table(header, rows), note])
+
+
+PORTFOLIO_INPUTS = (
+    [Input(f"nominal-{bond_id}", "value") for bond_id in bonds["bond_id"]]  # one per bond
+    + [Input("hedge-selector", "value"), Input("shift-selector", "value")]
+)
+
+
+@callback(Output("portfolio-output", "children"), *PORTFOLIO_INPUTS)
+def show_portfolio(*args):
+    *nominal_values, hedge_bond_id, shift_bp = args
+    nominals = {
+        bond_id: float(value or 0) for bond_id, value in zip(bonds["bond_id"], nominal_values)
+    }
+
+    # 1. Engine: position risk and hedge size.
+    positions = portfolio_risk(bonds, discount_factors, nominals, shift_bp)
+    if positions.empty:
+        return html.P("Enter at least one non-zero position.", className="caption")
+
+    total_dv01 = positions["dv01"].sum()
+    hedge = bonds[bonds["bond_id"] == hedge_bond_id].iloc[0]
+    hedge_flows = bond_cash_flows(hedge["face_value"], hedge["coupon_rate"], hedge["maturity_years"])
+    hedge_dv01_per_100 = dv01(hedge_flows, discount_factors)
+    nominal_to_sell = hedge_nominal(total_dv01, hedge_dv01_per_100)
+
+    # 2. Format only.
+    header = ["Bond", "Face amount ($)", "Market value ($)", "DV01 ($)", f"P&L at {shift_bp:+d} bp ($)"]
+    rows = [
+        [r["bond_id"], f"{r['nominal']:,.0f}", f"{r['market_value']:,.0f}",
+         f"{r['dv01']:,.0f}", f"{r['pnl']:+,.0f}"]
+        for r in positions.to_dict("records")
+    ]
+    rows.append([
+        "Total", f"{positions['nominal'].sum():,.0f}", f"{positions['market_value'].sum():,.0f}",
+        f"{total_dv01:,.0f}", f"{positions['pnl'].sum():+,.0f}",
+    ])
+
+    hedge_text = html.P(
+        f"To bring the portfolio DV01 of {total_dv01:,.0f} $ to zero, sell about "
+        f"{nominal_to_sell:,.0f} $ face of bond {hedge_bond_id} "
+        f"(DV01 {hedge_dv01_per_100:.4f} per 100 face). "
+        "This hedge only covers small parallel shifts.",
+        className="caption", style={"marginTop": "8px"},
+    )
+    return html.Div([make_table(header, rows), hedge_text])
 
 
 if __name__ == "__main__":
