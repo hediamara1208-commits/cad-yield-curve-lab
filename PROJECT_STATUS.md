@@ -46,7 +46,8 @@ _Last updated: 2026-11-13_
 - Phase 5 step 2: `src/yieldcurve/market.py` (`available_date_on_or_before` with weekend fallback, `curve_on_date`, `compare_curves` in bp, `slope_bp` for the 2s10s), tested offline. Dashboard section 8 (two date pickers, observed curves on both dates, change table with 2s10s) and section 9 (2s10s history with the selected dates marked). Clearly labelled as observed, not live, yields to maturity not zero rates. 73 tests pass. Not committed yet.
 - Phase 5 committed (43c738b) and merged into `main`.
 - Phase 6 step 1 (branch `feature/docs`): README rewritten (overview, data honesty note, method with formulas, results, data, structure, how to run, limitations), three screenshots in `docs/` (curves, scenarios, observed market), privacy check of tracked files.
-- Next: publish on GitHub (Hedi to decide public/private and the commit author e-mail shown publicly).
+- Published on GitHub (public): https://github.com/hediamara1208-commits/cad-yield-curve-lab
+- Next: optional extensions (semi-annual coupons and day counts, interpolation, key-rate DV01, comparison with the Bank of Canada zero-coupon curve).
 
 ## Previous (Phase 3)
 
