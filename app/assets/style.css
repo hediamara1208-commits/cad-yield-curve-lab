@@ -44,3 +44,8 @@ h2 { font-size: 18px; margin: 32px 0 8px; }
 .data-table td:first-child { text-align: left; }
 
 .data-table th { color: #52514e; font-weight: 600; }
+
+.shift-selector label {
+  margin-right: 16px;
+  font-variant-numeric: tabular-nums;
+}

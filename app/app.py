@@ -1,4 +1,4 @@
-"""CAD Yield Curve Lab: first Dash dashboard (static, Phase 3 step 1).
+"""CAD Yield Curve Lab: Dash dashboard (curves, price breakdown, rate scenarios).
 
 The app does NO finance itself. It calls the tested engine (yieldcurve),
 then only formats and draws the results.
@@ -13,10 +13,11 @@ from pathlib import Path
 import plotly.graph_objects as go
 from dash import Dash, Input, Output, callback, dcc, html
 
-from yieldcurve.curve import build_curve_table
+from yieldcurve.curve import build_curve_table, zero_rates_from_discount_factors
 from yieldcurve.data import load_bonds
 from yieldcurve.instruments import bond_cash_flows
 from yieldcurve.pricing import cash_flow_breakdown
+from yieldcurve.risk import STANDARD_SHIFTS_BP, parallel_shift, scenario_table
 
 DATA_FILE = Path(__file__).parent.parent / "data" / "synthetic_bonds.csv"
 
@@ -179,6 +180,21 @@ app.layout = html.Main(
             style={"maxWidth": "240px"},
         ),
         html.Div(id="breakdown-output", style={"marginTop": "12px"}),
+        html.H2("6. Rate scenarios: parallel shift of the zero curve"),
+        html.P(
+            "Every zero rate moves by the same number of basis points (1 bp = 0.01%). "
+            "Each bond is fully repriced on the shifted curve.",
+            className="caption",
+        ),
+        dcc.RadioItems(
+            id="shift-selector",
+            options=[{"label": f"{s:+d} bp", "value": s} for s in STANDARD_SHIFTS_BP],
+            value=25,
+            inline=True,
+            className="shift-selector",
+        ),
+        dcc.Graph(id="shift-chart", config={"displayModeBar": False}),
+        html.Div(id="scenario-output"),
     ],
 )
 
@@ -216,6 +232,58 @@ def show_breakdown(bond_id: str):
             ),
         ]
     )
+
+
+@callback(
+    Output("shift-chart", "figure"),
+    Output("scenario-output", "children"),
+    Input("shift-selector", "value"),
+)
+def show_scenario(shift_bp: int):
+    # 1. Engine: shifted curve and repriced bonds.
+    shifted_zero_rates = zero_rates_from_discount_factors(parallel_shift(discount_factors, shift_bp))
+    scenario = scenario_table(bonds, discount_factors, [shift_bp])
+    change_column = f"change_{shift_bp:+g}bp"
+
+    # 2. Chart: base vs shifted zero curve.
+    maturities = curve["maturity_years"].tolist()
+    figure = go.Figure()
+    figure.add_trace(go.Scatter(
+        x=maturities, y=curve["zero_rate"], mode="lines+markers", name="Base zero curve",
+        line=dict(color=ZERO_COLOR, width=2), marker=dict(size=8),
+        hovertemplate="Base: %{y:.2%}<extra></extra>",
+    ))
+    figure.add_trace(go.Scatter(
+        x=maturities, y=[shifted_zero_rates[m] for m in maturities], mode="lines+markers",
+        name=f"Shifted {shift_bp:+d} bp",
+        line=dict(color=FORWARD_COLOR, width=2, dash="dash"), marker=dict(size=8),
+        hovertemplate="Shifted: %{y:.2%}<extra></extra>",
+    ))
+    figure = apply_chart_style(figure, "Zero rate (annual compounding)")
+    figure.update_yaxes(tickformat=".1%")
+
+    # 3. Table: full repricing vs the linear DV01 estimate.
+    header = [
+        "Bond", "Maturity", "Base price", "New price", "Price change",
+        "DV01 (per 100)", "DV01 estimate", "Convexity gap",
+    ]
+    rows = []
+    for r in scenario.to_dict("records"):  # one dict per bond
+        change = r[change_column]
+        linear_estimate = -r["dv01"] * shift_bp  # rates up -> price down
+        rows.append([
+            r["bond_id"], r["maturity_years"], f"{r['base_price']:.4f}",
+            f"{r['base_price'] + change:.4f}", f"{change:+.4f}", f"{r['dv01']:.4f}",
+            f"{linear_estimate:+.4f}", f"{change - linear_estimate:+.4f}",
+        ])
+
+    note = html.P(
+        "DV01 estimate = −DV01 × shift (a straight-line approximation). "
+        "Convexity gap = price change − DV01 estimate: always positive, because the "
+        "price falls less (or rises more) than the straight line predicts.",
+        className="caption", style={"marginTop": "8px"},
+    )
+    return figure, html.Div([make_table(header, rows), note])
 
 
 if __name__ == "__main__":
