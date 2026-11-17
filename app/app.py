@@ -13,8 +13,10 @@ from pathlib import Path
 import plotly.graph_objects as go
 from dash import Dash, Input, Output, callback, dcc, html
 
+from yieldcurve.boc import load_benchmark_yields
 from yieldcurve.curve import build_curve_table, zero_rates_from_discount_factors
 from yieldcurve.data import load_bonds
+from yieldcurve.market import compare_curves, slope_bp
 from yieldcurve.instruments import bond_cash_flows
 from yieldcurve.pricing import cash_flow_breakdown
 from yieldcurve.risk import (
@@ -27,6 +29,7 @@ from yieldcurve.risk import (
 )
 
 DATA_FILE = Path(__file__).parent.parent / "data" / "synthetic_bonds.csv"
+BOC_FILE = Path(__file__).parent.parent / "data" / "boc_benchmark_yields.csv"
 
 # Chart colors: validated categorical slots 1 and 2 (light surface).
 ZERO_COLOR = "#2a78d6"     # blue
@@ -42,6 +45,12 @@ AXIS = "#c3c2b7"
 bonds = load_bonds(DATA_FILE)
 curve = build_curve_table(bonds)
 discount_factors = dict(zip(curve["maturity_years"], curve["discount_factor"]))
+
+# Observed Bank of Canada benchmark yields (saved CSV, not live).
+market = load_benchmark_yields(BOC_FILE)
+market_slope = slope_bp(market)  # 2s10s in bp
+FIRST_MARKET_DATE = market["date"].min()
+LAST_MARKET_DATE = market["date"].max()
 
 # Example portfolio from the learning notes: 1 M$ of A and 1 M$ of E.
 DEFAULT_NOMINALS = {"A": 1_000_000, "E": 1_000_000}
@@ -232,6 +241,38 @@ app.layout = html.Main(
             value="C", clearable=False, style={"width": "160px", "display": "inline-block"},
         )], className="hedge-label"),
         html.Div(id="portfolio-output", style={"marginTop": "12px"}),
+        html.H2("8. Observed market: Government of Canada benchmark yields"),
+        html.P(
+            className="notice",
+            children=(
+                f"Observed data from the Bank of Canada (Valet API), "
+                f"{FIRST_MARKET_DATE:%Y-%m-%d} to {LAST_MARKET_DATE:%Y-%m-%d}. Not live. "
+                "These are yields to maturity of benchmark coupon bonds, not zero rates, "
+                "and they are not used by the synthetic bootstrap above."
+            ),
+        ),
+        html.Div(
+            className="date-pickers",
+            children=[
+                html.Label(["First date", dcc.DatePickerSingle(
+                    id="first-date", date="2023-06-30", display_format="YYYY-MM-DD",
+                    min_date_allowed=FIRST_MARKET_DATE, max_date_allowed=LAST_MARKET_DATE,
+                )]),
+                html.Label(["Second date", dcc.DatePickerSingle(
+                    id="second-date", date=f"{LAST_MARKET_DATE:%Y-%m-%d}", display_format="YYYY-MM-DD",
+                    min_date_allowed=FIRST_MARKET_DATE, max_date_allowed=LAST_MARKET_DATE,
+                )]),
+            ],
+        ),
+        dcc.Graph(id="observed-curves", config={"displayModeBar": False}),
+        html.Div(id="observed-comparison"),
+        html.H2("9. Curve slope over time: 10-year minus 2-year (2s10s)"),
+        html.P(
+            "Above zero: upward-sloping curve. Below zero: inverted curve "
+            "(2-year yield higher than 10-year yield).",
+            className="caption",
+        ),
+        dcc.Graph(id="slope-history", config={"displayModeBar": False}),
     ],
 )
 
@@ -367,6 +408,68 @@ def show_portfolio(*args):
         className="caption", style={"marginTop": "8px"},
     )
     return html.Div([make_table(header, rows), hedge_text])
+
+
+@callback(
+    Output("observed-curves", "figure"),
+    Output("observed-comparison", "children"),
+    Output("slope-history", "figure"),
+    Input("first-date", "date"),
+    Input("second-date", "date"),
+)
+def show_observed_market(first_date: str, second_date: str):
+    # 1. Engine: curves on both dates (falls back to the last business day).
+    comparison = compare_curves(market, first_date, second_date)
+    first_used = comparison.attrs["first_date"]
+    second_used = comparison.attrs["second_date"]
+    tenors = comparison["tenor_years"].tolist()
+
+    # 2. Observed curves chart.
+    curves = go.Figure()
+    for column, label, color, dash in [
+        ("first_yield", f"{first_used:%Y-%m-%d}", ZERO_COLOR, "solid"),
+        ("second_yield", f"{second_used:%Y-%m-%d}", FORWARD_COLOR, "dash"),
+    ]:
+        curves.add_trace(go.Scatter(
+            x=tenors, y=comparison[column], mode="lines+markers", name=label,
+            line=dict(color=color, width=2, dash=dash), marker=dict(size=8),
+            hovertemplate=label + ": %{y:.2%}<extra></extra>",
+        ))
+    curves = apply_chart_style(curves, "Yield to maturity (observed)")
+    curves.update_xaxes(title="Benchmark term (years)", tickvals=tenors)
+    curves.update_yaxes(tickformat=".1%")
+
+    # 3. Comparison table.
+    header = ["Term (years)", f"{first_used:%Y-%m-%d}", f"{second_used:%Y-%m-%d}", "Change (bp)"]
+    rows = [
+        [int(r["tenor_years"]), f"{r['first_yield']:.2%}", f"{r['second_yield']:.2%}", f"{r['change_bp']:+.0f}"]
+        for r in comparison.to_dict("records")
+    ]
+    first_slope = market_slope.loc[first_used]
+    second_slope = market_slope.loc[second_used]
+    rows.append(["2s10s slope (bp)", f"{first_slope:+.0f}", f"{second_slope:+.0f}", f"{second_slope - first_slope:+.0f}"])
+
+    # 4. Slope history, with the two selected dates marked.
+    slope = go.Figure(go.Scatter(
+        x=market_slope.index, y=market_slope.values, mode="lines", name="2s10s",
+        line=dict(color=ZERO_COLOR, width=2),
+        hovertemplate="%{x|%Y-%m-%d}: %{y:+.0f} bp<extra></extra>",
+    ))
+    slope.add_hline(y=0, line=dict(color=AXIS, width=1))
+    for used in (first_used, second_used):
+        slope.add_vline(x=used, line=dict(color=TEXT_MUTED, width=1, dash="dot"))
+        value = market_slope.loc[used]
+        slope.add_annotation(
+            x=used, y=value, text=f"{value:+.0f} bp",
+            # Label away from the line: below a negative value, above a positive one.
+            showarrow=True, arrowhead=0, ax=0, ay=36 if value < 0 else -36,
+            font=dict(color=TEXT_PRIMARY, size=12), bgcolor=SURFACE,
+        )
+    slope = apply_chart_style(slope, "10-year minus 2-year (bp)")
+    slope.update_xaxes(title="Date", dtick=None)
+    slope.update_layout(showlegend=False)
+
+    return curves, make_table(header, rows), slope
 
 
 if __name__ == "__main__":

@@ -42,7 +42,9 @@ _Last updated: 2026-11-13_
 - Phase 4 committed (049040c) and merged into `main`.
 - Phase 5 step 1 (branch `feature/boc-data`): `src/yieldcurve/boc.py` (parse Valet JSON, percent → decimal, keep 2/3/5/7/10y, skip missing values, save/load CSV with checks), `scripts/download_boc_yields.py`, `data/boc_benchmark_yields.csv` (1,712 dates, 2020-01-02 to 2026-11-13). Tests use a saved sample, no network. 67 tests pass. Not committed yet.
 - First look at the data (our computation): 2s10s from +134 bp (2021-03-18) to −132 bp (2023-06-30); inverted on 592 of 1,712 days; +48 bp on 2026-11-13.
-- Next: engine functions for slope and date comparison, then dashboard section "Observed market".
+- Data layer committed (eaf9781).
+- Phase 5 step 2: `src/yieldcurve/market.py` (`available_date_on_or_before` with weekend fallback, `curve_on_date`, `compare_curves` in bp, `slope_bp` for the 2s10s), tested offline. Dashboard section 8 (two date pickers, observed curves on both dates, change table with 2s10s) and section 9 (2s10s history with the selected dates marked). Clearly labelled as observed, not live, yields to maturity not zero rates. 73 tests pass. Not committed yet.
+- Next: Phase 6 (README with screenshots, documentation, publication on GitHub).
 
 ## Previous (Phase 3)
 
