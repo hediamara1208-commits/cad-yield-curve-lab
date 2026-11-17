@@ -106,17 +106,50 @@ The financial engine never depends on the dashboard: every calculation shown in 
 
 ---
 
-## Run it
+## Run the dashboard on your computer
 
-Python 3.11 or later.
+About 5 minutes. Everything runs locally on your machine; nothing is sent anywhere.
+
+### Windows
+
+1. **Install Python 3.11 or later** from [python.org/downloads](https://www.python.org/downloads/). On the first installer screen, tick **"Add python.exe to PATH"**.
+2. **Download the project.** On this GitHub page, click the green **Code** button, then **Download ZIP**. Extract the ZIP file (right-click → *Extract All*).
+3. **Open PowerShell in the project folder.** Open the extracted folder `cad-yield-curve-lab-main` in File Explorer, click in the address bar, type `powershell` and press Enter.
+4. **Copy and paste these commands, one at a time** (the second one takes a minute):
+
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\python.exe -m pip install -r requirements.txt
+   .venv\Scripts\python.exe -m pip install -e .
+   .venv\Scripts\python.exe app\app.py
+   ```
+
+5. **Open http://localhost:8050** in your web browser. The dashboard appears.
+6. **To stop it**, close the PowerShell window (or press Ctrl+C in it).
+
+To launch it again later, open PowerShell in the same folder (step 3) and run only the last command.
+
+The commands call `.venv\Scripts\python.exe` directly instead of "activating" the virtual environment, because activation is often blocked by PowerShell security settings on work computers.
+
+### macOS / Linux
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate          # Windows (macOS/Linux: source .venv/bin/activate)
-pip install -r requirements.txt
-pip install -e .
-pytest                           # 73 tests
-python app/app.py                # then open http://localhost:8050
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip install -e .
+.venv/bin/python app/app.py      # then open http://localhost:8050
+```
+
+### Troubleshooting
+
+- **`python` is not recognized**: Python is not on the PATH. Re-run the installer, choose *Modify*, and tick *Add Python to environment variables*; then open a new PowerShell window.
+- **The page does not load**: check that the last command is still running in PowerShell and shows `Dash is running on http://127.0.0.1:8050/`.
+- **Port 8050 already in use**: close the other program using it, or the earlier PowerShell window that is still running the app.
+
+### Run the tests (optional)
+
+```powershell
+.venv\Scripts\python.exe -m pytest      # 73 tests
 ```
 
 ---
